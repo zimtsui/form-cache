@@ -1,44 +1,30 @@
-import { createReadStream, unlinkSync } from 'node:fs';
-import { resolve } from 'node:path';
-import { Readable, Writable } from 'node:stream';
-import { execFileSync } from 'node:child_process';
 import { StreamCache } from './stream-cache.ts';
-import { open } from 'node:fs/promises';
-
+import { BlobCache } from './blob-cache.ts';
 
 
 
 export namespace LocalStreamCache {
-    export interface Options {
-        tempDirPath: string;
-    }
 
-    export function create(options: Options): StreamCache {
-        return async ({
-            fileReadableStream,
-            signal,
-        }: StreamCache.Params) => {
+    export function create(blobCache: BlobCache): StreamCache {
+        return async (stream, signal) => {
             await using ads = new AsyncDisposableStack();
-            const tempFilePath = execFileSync('mktemp', ['-p', resolve(options.tempDirPath)], { encoding: 'utf-8', stdio: ['ignore', 'pipe', 'pipe'] }).trimEnd();
-            ads.defer(() => unlinkSync(tempFilePath));
-            await using fd = await open(tempFilePath, 'w');
-            await fileReadableStream.pipeTo(Writable.toWeb(fd.createWriteStream()), { signal });
-            return new LocalStreamCache.Retriever(ads, tempFilePath);
+            const blob = ads.use(await blobCache({ stream, signal }));
+            return new LocalStreamCache.Storage(ads, blob);
         };
     }
 
-    export class Retriever implements StreamCache.Retriever {
+    export class Storage implements StreamCache.Storage {
         protected ads: AsyncDisposableStack;
 
         public constructor(
             ads: AsyncDisposableStack,
-            protected tempFilePath: string,
+            protected blob: BlobCache.Blob,
         ) {
             this.ads = ads.move();
         }
 
-        public retrieve(): ReadableStream {
-            return Readable.toWeb(createReadStream(this.tempFilePath), { strategy: { size(chunk: Uint8Array) { return chunk.byteLength; } } });
+        public async retrieve(): Promise<ReadableStream<Uint8Array>> {
+            return this.blob.stream();
         }
 
         public async [Symbol.asyncDispose](): Promise<void> {

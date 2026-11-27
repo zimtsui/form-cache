@@ -8,21 +8,18 @@ import { open } from 'node:fs/promises';
 
 
 export namespace LocalBlobCache {
-    export interface Options {
-        tempDirPath: string;
-    }
 
-    export function create(options: Options): BlobCache {
+    export function create(tempDirPath: string): BlobCache {
         return async ({
-            fileReadableStream,
+            stream,
             mimeType,
             signal,
         }: BlobCache.Params) => {
             await using ads = new AsyncDisposableStack();
-            const tempFilePath = execFileSync('mktemp', ['-p', resolve(options.tempDirPath)], { encoding: 'utf-8', stdio: ['ignore', 'pipe', 'pipe'] }).trimEnd();
+            const tempFilePath = execFileSync('mktemp', ['-p', resolve(tempDirPath)], { encoding: 'utf-8', stdio: ['ignore', 'pipe', 'pipe'] }).trimEnd();
             ads.defer(() => unlinkSync(tempFilePath));
             await using fd = await open(tempFilePath, 'w');
-            await fileReadableStream.pipeTo(Writable.toWeb(fd.createWriteStream()), { signal });
+            await stream.pipeTo(Writable.toWeb(fd.createWriteStream()), { signal });
             return new LocalBlobCache.Blob(ads, await openAsBlob(tempFilePath, { type: mimeType?.toString() }));
         };
     }

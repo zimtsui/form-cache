@@ -10,3 +10,4 @@
 
 -   Only ASCII is supported for `multipart/form-data` form charset. Refer to [`@zimtsui/form-stream`](https://github.com/zimtsui/form-stream) for all compromises about `multipart/form-data` parsing.
 -   `FormCache.Form` is a subclass of `Undici.FormData` instead of global `FormData`.
+-   `RequestCache.Request` is not a subclass of `Undici.Request`.

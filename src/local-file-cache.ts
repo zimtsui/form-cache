@@ -5,21 +5,18 @@ import { LocalBlobCache } from './local-blob-cache.ts';
 
 
 export namespace LocalFileCache {
-    export interface Options {
-        tempDirPath: string;
-    }
 
-    export function create({ tempDirPath }: Options): FileCache {
-        const localBlobCache = LocalBlobCache.create({ tempDirPath });
+    export function create(tempDirPath: string): FileCache {
+        const localBlobCache = LocalBlobCache.create(tempDirPath);
 
         return async ({
-            fileReadableStream,
+            stream,
             fileName,
             mimeType,
             signal,
         }: FileCache.Params) => {
             await using ads = new AsyncDisposableStack();
-            const blob = await localBlobCache({ fileReadableStream, mimeType, signal });
+            const blob = await localBlobCache({ stream, mimeType, signal });
             ads.use(blob);
             return new LocalFileCache.File(ads, blob, fileName);
         };

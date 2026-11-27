@@ -1,15 +1,10 @@
 
 export interface StreamCache {
-    (params: StreamCache.Params): Promise<StreamCache.Retriever>;
+    (stream: ReadableStream<Uint8Array>, signal?: AbortSignal): Promise<StreamCache.Storage>;
 }
 
 export namespace StreamCache {
-    export interface Retriever extends AsyncDisposable {
-        retrieve(): ReadableStream;
-    }
-
-    export interface Params {
-        fileReadableStream: ReadableStream;
-        signal?: AbortSignal;
+    export interface Storage extends AsyncDisposable {
+        retrieve(): Promise<ReadableStream<Uint8Array>>;
     }
 }

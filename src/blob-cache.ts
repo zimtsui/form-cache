@@ -7,7 +7,7 @@ export interface BlobCache {
 
 export namespace BlobCache {
     export interface Params {
-        fileReadableStream: ReadableStream;
+        stream: ReadableStream<Uint8Array>;
         mimeType?: MIMEType;
         signal?: AbortSignal;
     }
