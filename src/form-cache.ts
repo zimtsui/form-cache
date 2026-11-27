@@ -13,6 +13,7 @@ import { MIMEType, TextDecoder } from 'node:util';
  * @throws {@link RequestSyntaxError}
  * @throws {@link RequestTypeError}
  * @throws {@link TypeError} Invalid request `Content-Type` header.
+ * @throws {@link SyntaxError} Unsupported charset for a multipart text field.
  */
 export interface FormCache {
     (params: FormCache.Params): Promise<FormCache.Form>;
