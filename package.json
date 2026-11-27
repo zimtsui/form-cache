@@ -1,6 +1,6 @@
 {
   "name": "@zimtsui/form-cache",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "exports": {
     ".": "./build/exports.js",
     "./local": "./build/local.exports.js"
