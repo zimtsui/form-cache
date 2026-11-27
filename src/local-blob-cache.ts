@@ -1,9 +1,9 @@
 import { openAsBlob, unlinkSync } from 'node:fs';
-import { open } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { Writable } from 'node:stream';
 import { execFileSync } from 'node:child_process';
 import type { BlobCache } from './blob-cache.ts';
+import { open } from 'node:fs/promises';
 
 
 
