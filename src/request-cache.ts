@@ -5,30 +5,30 @@ import { Readable } from 'node:stream';
 
 
 export interface RequestCache {
-    (request: Undici.Request, signal?: AbortSignal): Promise<RequestCache.Storage>;
+    (request: Undici.Request, signal?: AbortSignal): Promise<RequestCache.Image>;
 }
 
 export namespace RequestCache {
 
     export function create(streamCache: StreamCache): RequestCache {
-        return async (request, signal) => {
+        return async (request) => {
             await using ads = new AsyncDisposableStack();
             if (request.body) {
                 if (request.bodyUsed) throw new TypeError('Raw request body is required to be not used.');
-                const storage = ads.use(await streamCache(request.body, signal));
-                return new RequestCache.Storage(ads, request, storage);
+                const image = ads.use(await streamCache(request.body, request.signal));
+                return new RequestCache.Image(ads, request, image);
             } else
-                return new RequestCache.Storage(ads, request, null);
+                return new RequestCache.Image(ads, request, null);
         }
     }
 
-    export class Storage implements AsyncDisposable {
+    export class Image implements AsyncDisposable {
         protected ads: AsyncDisposableStack;
 
         public constructor(
             ads: AsyncDisposableStack,
             protected request: Undici.Request,
-            protected storage: StreamCache.Storage | null,
+            protected image: StreamCache.Image | null,
         ) {
             this.ads = ads.move();
         }
@@ -38,7 +38,7 @@ export namespace RequestCache {
         }
 
         public async retrieve(): Promise<RequestCache.Request> {
-            return new RequestCache.Request(this.request, this.storage ? await this.storage.retrieve() : null);
+            return new RequestCache.Request(this.request, this.image ? await this.image.retrieve() : null);
         }
     }
 

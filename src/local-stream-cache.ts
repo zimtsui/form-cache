@@ -9,11 +9,11 @@ export namespace LocalStreamCache {
         return async (stream, signal) => {
             await using ads = new AsyncDisposableStack();
             const blob = ads.use(await blobCache({ stream, signal }));
-            return new LocalStreamCache.Storage(ads, blob);
+            return new LocalStreamCache.Image(ads, blob);
         };
     }
 
-    export class Storage implements StreamCache.Storage {
+    export class Image implements StreamCache.Image {
         protected ads: AsyncDisposableStack;
 
         public constructor(
